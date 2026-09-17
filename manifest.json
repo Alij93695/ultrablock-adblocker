@@ -19,7 +19,6 @@
   },
   "permissions": [
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
     "storage",
     "tabs"
   ],
@@ -41,7 +40,9 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.youtube.com/*"
+        "*://*.youtube.com/*",
+        "*://youtube.com/*",
+        "*://*.youtube-nocookie.com/*"
       ],
       "js": [
         "content/youtube_adblock.js",
@@ -58,6 +59,8 @@
       ],
       "exclude_matches": [
         "*://*.youtube.com/*",
+        "*://youtube.com/*",
+        "*://*.youtube-nocookie.com/*",
         "*://localhost/*",
         "*://127.0.0.1/*",
         "*://0.0.0.0/*"

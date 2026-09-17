@@ -30,6 +30,15 @@ chrome.runtime.onInstalled.addListener(async () => {
   updateBadge(initial.stats.totalBlocked);
 });
 
+chrome.runtime.onStartup.addListener(async () => {
+  const data = await chrome.storage.local.get(['stats']);
+  if (data && data.stats) {
+    chrome.action.setBadgeBackgroundColor({ color: '#8b5cf6' });
+    updateBadge(data.stats.totalBlocked);
+  }
+});
+
+
 // Update badge count
 function updateBadge(count) {
   if (!count || count === 0) {

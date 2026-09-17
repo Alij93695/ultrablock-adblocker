@@ -172,12 +172,17 @@
       if (delta > 0) {
         hasReported = blockedCount;
         try {
-          chrome.runtime.sendMessage({
-            action: 'incrementStats',
-            type: 'genericAds',
-            count: delta
-          });
+          if (chrome.runtime && chrome.runtime.id) {
+            chrome.runtime.sendMessage({
+              action: 'incrementStats',
+              type: 'genericAds',
+              count: delta
+            }, () => {
+              if (chrome.runtime.lastError) {}
+            });
+          }
         } catch (e) {}
+
       }
     }, 500);
   }

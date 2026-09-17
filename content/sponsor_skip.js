@@ -228,12 +228,17 @@
 
           // Report sponsor skip statistic
           try {
-            chrome.runtime.sendMessage({
-              action: 'incrementStats',
-              type: 'sponsorsSkipped',
-              count: 1
-            });
+            if (chrome.runtime && chrome.runtime.id) {
+              chrome.runtime.sendMessage({
+                action: 'incrementStats',
+                type: 'sponsorsSkipped',
+                count: 1
+              }, () => {
+                if (chrome.runtime.lastError) {}
+              });
+            }
           } catch (e) {}
+
           break;
         }
       }

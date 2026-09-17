@@ -193,13 +193,17 @@
    */
   function reportStats() {
     try {
+      if (!chrome.runtime || !chrome.runtime.id) return;
       chrome.runtime.sendMessage({
         action: 'incrementStats',
         type: 'youtubeAds',
         count: 1
+      }, () => {
+        if (chrome.runtime.lastError) {}
       });
     } catch (e) {}
   }
+
 
   /**
    * Main initialization loop
