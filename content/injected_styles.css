@@ -6,9 +6,6 @@
 #masthead-ad,
 ytd-masthead #masthead-ad,
 ytd-ad-slot-renderer,
-ytd-rich-item-renderer:has(ytd-display-ad-renderer),
-ytd-rich-item-renderer:has(ytd-ad-slot-renderer),
-ytd-rich-section-renderer:has(ytd-statement-banner-renderer),
 ytd-display-ad-renderer,
 ytd-banner-promo-renderer,
 ytd-promoted-sparkles-web-renderer,
@@ -17,7 +14,6 @@ ytd-promoted-video-renderer,
 ytd-compact-promoted-video-renderer,
 ytd-in-feed-ad-layout-renderer,
 #player-ads,
-#panels:has(ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"]),
 ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"],
 .ytp-ad-overlay-container,
 .ytp-ad-message-container,
@@ -30,8 +26,7 @@ ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"],
 ytd-action-companion-ad-renderer,
 ytd-merch-shelf-renderer,
 #related ytd-ad-slot-renderer,
-#items > ytd-ad-slot-renderer,
-ytd-reel-video-renderer:has(.ytd-ad-slot-renderer) {
+#items > ytd-ad-slot-renderer {
   display: none !important;
   visibility: hidden !important;
   height: 0 !important;

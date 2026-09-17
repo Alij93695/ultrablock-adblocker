@@ -45,18 +45,6 @@
         "*://*.youtube-nocookie.com/*"
       ],
       "js": [
-        "content/youtube_engine_main.js"
-      ],
-      "world": "MAIN",
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "*://*.youtube.com/*",
-        "*://youtube.com/*",
-        "*://*.youtube-nocookie.com/*"
-      ],
-      "js": [
         "content/youtube_adblock.js",
         "content/sponsor_skip.js"
       ],
