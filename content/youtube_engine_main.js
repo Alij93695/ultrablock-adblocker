@@ -1,7 +1,7 @@
-﻿/**
+/**
  * UltraBlock - YouTube Core Engine (MAIN World)
- * Strips adPlacements, playerAds, and adSlots before the YouTube player initializes.
- * Overrides JSON.parse, window.fetch, and ytInitialPlayerResponse.
+ * Strips adPlacements, playerAds, adSlots, and tracking before YouTube player initializes.
+ * Overrides JSON.parse, Response.prototype.json, window.fetch, XMLHttpRequest, and ytInitialPlayerResponse.
  */
 (function () {
   'use strict';
@@ -9,12 +9,26 @@
   function pruneAdData(data) {
     if (!data || typeof data !== 'object') return data;
     try {
-      if (data.adPlacements) delete data.adPlacements;
-      if (data.playerAds) delete data.playerAds;
-      if (data.adSlots) delete data.adSlots;
-      if (data.adBreakHeartbeatParams) delete data.adBreakHeartbeatParams;
+      if (Array.isArray(data)) {
+        for (let i = 0; i < data.length; i++) {
+          pruneAdData(data[i]);
+        }
+        return data;
+      }
+      if ('adPlacements' in data) delete data.adPlacements;
+      if ('playerAds' in data) delete data.playerAds;
+      if ('adSlots' in data) delete data.adSlots;
+      if ('adBreakHeartbeatParams' in data) delete data.adBreakHeartbeatParams;
+      if ('playbackTracking' in data && data.playbackTracking) {
+        delete data.playbackTracking.videostatsPlaybackUrl;
+        delete data.playbackTracking.videostatsDelayplayUrl;
+        delete data.playbackTracking.videostatsWatchtimeUrl;
+      }
       if (data.playerResponse && typeof data.playerResponse === 'object') {
         pruneAdData(data.playerResponse);
+      }
+      if (data.raw_player_response && typeof data.raw_player_response === 'object') {
+        pruneAdData(data.raw_player_response);
       }
     } catch (e) {}
     return data;
@@ -30,8 +44,23 @@
     return result;
   };
 
-  // 2. Intercept window.ytInitialPlayerResponse
-  let _ytInitialPlayerResponse = undefined;
+  // 2. Intercept Response.prototype.json (Catches all modern fetch JSON payloads)
+  if (typeof Response !== 'undefined' && Response.prototype && Response.prototype.json) {
+    const origResponseJson = Response.prototype.json;
+    Response.prototype.json = async function () {
+      const result = await origResponseJson.apply(this);
+      if (result && typeof result === 'object') {
+        pruneAdData(result);
+      }
+      return result;
+    };
+  }
+
+  // 3. Intercept window.ytInitialPlayerResponse
+  let _ytInitialPlayerResponse = window.ytInitialPlayerResponse;
+  if (_ytInitialPlayerResponse) {
+    pruneAdData(_ytInitialPlayerResponse);
+  }
   try {
     Object.defineProperty(window, 'ytInitialPlayerResponse', {
       configurable: true,
@@ -49,13 +78,39 @@
     }
   }
 
-  // 3. Intercept fetch() for /youtubei/v1/player
+  // 4. Intercept window.ytplayer
+  let _ytplayer = window.ytplayer;
+  try {
+    Object.defineProperty(window, 'ytplayer', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return _ytplayer;
+      },
+      set(val) {
+        try {
+          if (val && val.config && val.config.args) {
+            if (typeof val.config.args.raw_player_response === 'string') {
+              const parsed = JSON.parse(val.config.args.raw_player_response);
+              pruneAdData(parsed);
+              val.config.args.raw_player_response = JSON.stringify(parsed);
+            } else if (typeof val.config.args.raw_player_response === 'object') {
+              pruneAdData(val.config.args.raw_player_response);
+            }
+          }
+        } catch (err) {}
+        _ytplayer = val;
+      }
+    });
+  } catch (e) {}
+
+  // 5. Intercept fetch() for /youtubei/v1/player, /browse, /next
   const originalFetch = window.fetch;
   window.fetch = async function (...args) {
     const response = await originalFetch.apply(this, args);
     try {
       const url = (args[0] && typeof args[0] === 'string') ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-      if (url && url.includes('/youtubei/v1/player')) {
+      if (url && (url.includes('/youtubei/v1/player') || url.includes('/youtubei/v1/browse') || url.includes('/youtubei/v1/next'))) {
         const originalJson = response.json.bind(response);
         response.json = async function () {
           const data = await originalJson();
@@ -66,7 +121,7 @@
     return response;
   };
 
-  // 4. Intercept XMLHttpRequest for InnerTube player requests
+  // 6. Intercept XMLHttpRequest for InnerTube requests
   const originalOpen = XMLHttpRequest.prototype.open;
   const originalSend = XMLHttpRequest.prototype.send;
 
@@ -95,7 +150,7 @@
     return originalSend.apply(this, args);
   };
 
-  // 5. Native moviePlayer skipAd helper (MAIN World Direct Access)
+  // 7. Native moviePlayer skipAd helper (MAIN World Direct Access)
   function tryNativeSkip() {
     try {
       const player = document.getElementById('movie_player') || document.querySelector('.html5-video-player');
@@ -103,8 +158,8 @@
         if (typeof player.skipAd === 'function') {
           player.skipAd();
         }
-        if (typeof player.stopVideo === 'function' && player.classList.contains('ad-showing')) {
-          player.skipAd?.();
+        if (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting')) {
+          if (typeof player.cancelPlayback === 'function') player.cancelPlayback();
         }
       }
     } catch (e) {}

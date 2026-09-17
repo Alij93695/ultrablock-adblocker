@@ -65,14 +65,20 @@
       // 3. Click any skip button that exists
       clickSkipButtons();
 
-      // 4. Fast forward to end ONCE per ad (NEVER continuously in a 50ms loop!)
+      // 4. Fast forward to end ONCE per ad
       if (!hasSoughtCurrentAd && isFinite(video.duration) && video.duration > 0) {
         hasSoughtCurrentAd = true;
-        video.currentTime = video.duration;
+        video.currentTime = Math.max(0, video.duration - 0.1);
         clickSkipButtons();
       }
 
-      // 5. Ensure playback continues so the ended event fires
+      // 5. If near end or stalled, dispatch ended event to trigger next stream
+      if (isFinite(video.duration) && video.duration > 0 && video.currentTime >= video.duration - 0.3) {
+        clickSkipButtons();
+        video.dispatchEvent(new Event('ended'));
+      }
+
+      // 6. Ensure playback continues so the ended event fires
       if (video.paused) {
         video.play().catch(() => {});
       }
@@ -131,7 +137,6 @@
     }
   }
 
-
   /**
    * Neutralizes YouTube's Anti-Adblock "Ad blockers violate YouTube's Terms of Service" modal
    */
@@ -155,11 +160,9 @@
     });
 
     if (foundModal) {
-      // Remove any backdrop darkening overlay
       const backdrops = document.querySelectorAll('tp-yt-iron-overlay-backdrop');
       backdrops.forEach(backdrop => backdrop.remove());
 
-      // Restore scrollability
       if (document.body) {
         document.body.style.setProperty('overflow', 'auto', 'important');
       }
@@ -167,7 +170,6 @@
         document.documentElement.style.setProperty('overflow', 'auto', 'important');
       }
 
-      // Resume video playback if stopped
       const video = document.querySelector('video');
       const moviePlayer = document.getElementById('movie_player');
       if (moviePlayer && typeof moviePlayer.playVideo === 'function') {
@@ -225,7 +227,6 @@
       });
     } catch (e) {}
   }
-
 
   /**
    * Main initialization loop
