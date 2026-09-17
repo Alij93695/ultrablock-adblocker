@@ -13,6 +13,7 @@
   let originalMutedState = false;
   let originalPlaybackRate = 1;
   let isHandlingAd = false;
+  let hasSoughtCurrentAd = false;
 
   // Retrieve extension settings
   chrome.storage.local.get(
@@ -33,7 +34,7 @@
   );
 
   /**
-   * Fast-forwards and skips video ads instantly
+   * Fast-forwards and skips video ads instantly without buffer stalling
    */
   function obliterateVideoAd() {
     if (!isEnabled) return;
@@ -45,28 +46,36 @@
 
     const isAdShowing = moviePlayer.classList.contains('ad-showing') ||
                         moviePlayer.classList.contains('ad-interrupting') ||
-                        Boolean(document.querySelector('.ytp-ad-player-overlay, .ytp-ad-text, .ytp-ad-preview-text'));
+                        Boolean(document.querySelector('.ytp-ad-player-overlay, .ytp-ad-text, .ytp-ad-preview-text, .ytp-ad-module'));
 
     if (isAdShowing) {
       if (!isHandlingAd) {
         isHandlingAd = true;
+        hasSoughtCurrentAd = false;
         originalMutedState = video.muted;
         originalPlaybackRate = video.playbackRate || 1;
       }
 
-      // Mute audio during ad destruction
+      // 1. Instantly mute audio so user hears nothing
       video.muted = true;
       
-      // Speed up video to 16x (maximum browser supported rate)
+      // 2. Speed up video to 16x
       video.playbackRate = 16;
 
-      // Jump to the end of the ad video segment
-      if (isFinite(video.duration) && video.duration > 0) {
-        video.currentTime = video.duration - 0.05;
+      // 3. Click any skip button that exists
+      clickSkipButtons();
+
+      // 4. Fast forward to end ONCE per ad (NEVER continuously in a 50ms loop!)
+      if (!hasSoughtCurrentAd && isFinite(video.duration) && video.duration > 0) {
+        hasSoughtCurrentAd = true;
+        video.currentTime = video.duration;
+        clickSkipButtons();
       }
 
-      // Click any skip button that exists
-      clickSkipButtons();
+      // 5. Ensure playback continues so the ended event fires
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
 
       const now = Date.now();
       if (now - lastAdSkippedTime > 1500) {
@@ -77,11 +86,16 @@
     } else if (isHandlingAd) {
       // Ad is finished, restore video state
       isHandlingAd = false;
+      hasSoughtCurrentAd = false;
       if (video.playbackRate > 2) {
         video.playbackRate = (originalPlaybackRate >= 0.25 && originalPlaybackRate <= 2) ? originalPlaybackRate : 1;
       }
       if (!originalMutedState && video.muted) {
         video.muted = false;
+      }
+      // Ensure the actual main video plays!
+      if (video.paused) {
+        video.play().catch(() => {});
       }
     }
   }
@@ -94,21 +108,29 @@
       '.ytp-ad-skip-button',
       '.ytp-ad-skip-button-modern',
       '.ytp-skip-ad-button',
+      'button.ytp-ad-skip-button-modern',
       '.ytp-ad-skip-button-slot button',
       '.ytp-ad-overlay-close-button',
       'button.ytp-ad-overlay-close-button',
-      '.ytp-ad-skip-button-container button'
+      '.ytp-ad-skip-button-container button',
+      'button[class*="skip-button"]',
+      'button[class*="ytp-ad-skip"]',
+      '.ytp-ad-text.ytp-ad-preview-text',
+      'button[aria-label*="Skip"]'
     ];
 
     for (let i = 0; i < skipSelectors.length; i++) {
-      const btn = document.querySelector(skipSelectors[i]);
-      if (btn && typeof btn.click === 'function') {
-        try {
-          btn.click();
-        } catch (e) {}
-      }
+      try {
+        const btns = document.querySelectorAll(skipSelectors[i]);
+        btns.forEach(btn => {
+          if (btn && typeof btn.click === 'function') {
+            btn.click();
+          }
+        });
+      } catch (e) {}
     }
   }
+
 
   /**
    * Neutralizes YouTube's Anti-Adblock "Ad blockers violate YouTube's Terms of Service" modal

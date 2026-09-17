@@ -40,8 +40,8 @@
     "priority": 1,
     "action": { "type": "block" },
     "condition": {
-      "urlFilter": "||youtube.com/api/stats/ads^",
-      "resourceTypes": ["xmlhttprequest", "ping", "script", "other"]
+      "urlFilter": "||casalemedia.com^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "sub_frame", "ping", "other"]
     }
   },
   {
@@ -49,8 +49,8 @@
     "priority": 1,
     "action": { "type": "block" },
     "condition": {
-      "urlFilter": "||youtube.com/youtubei/v1/player/ad_break^",
-      "resourceTypes": ["xmlhttprequest", "other"]
+      "urlFilter": "||rubiconproject.com^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "sub_frame", "ping", "other"]
     }
   },
   {
@@ -58,8 +58,8 @@
     "priority": 1,
     "action": { "type": "block" },
     "condition": {
-      "urlFilter": "||youtube.com/pagead/^",
-      "resourceTypes": ["xmlhttprequest", "script", "image", "other"]
+      "urlFilter": "||openx.net^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "sub_frame", "ping", "other"]
     }
   },
   {
@@ -67,8 +67,8 @@
     "priority": 1,
     "action": { "type": "block" },
     "condition": {
-      "urlFilter": "||youtube.com/ptracking^",
-      "resourceTypes": ["xmlhttprequest", "ping", "other"]
+      "urlFilter": "||pubmatic.com^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "sub_frame", "ping", "other"]
     }
   },
   {
