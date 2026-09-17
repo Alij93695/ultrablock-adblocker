@@ -57,7 +57,10 @@
         "<all_urls>"
       ],
       "exclude_matches": [
-        "*://*.youtube.com/*"
+        "*://*.youtube.com/*",
+        "*://localhost/*",
+        "*://127.0.0.1/*",
+        "*://0.0.0.0/*"
       ],
       "js": [
         "content/generic_adblock.js"
@@ -65,19 +68,6 @@
       "css": [
         "content/injected_styles.css"
       ],
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "exclude_matches": [
-        "*://*.youtube.com/*"
-      ],
-      "js": [
-        "content/defusal_main.js"
-      ],
-      "world": "MAIN",
       "run_at": "document_start"
     }
   ]

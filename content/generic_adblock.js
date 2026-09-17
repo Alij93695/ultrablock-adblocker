@@ -6,8 +6,15 @@
 (function () {
   'use strict';
 
-  // Do not run generic purger on YouTube (handled by specialized youtube_adblock.js)
-  if (location.hostname.includes('youtube.com')) {
+  // Do not run generic purger on YouTube or local development servers
+  const currentHost = location.hostname.toLowerCase();
+  if (
+    currentHost === 'localhost' ||
+    currentHost === '127.0.0.1' ||
+    currentHost === '0.0.0.0' ||
+    currentHost.endsWith('.local') ||
+    currentHost.includes('youtube.com')
+  ) {
     return;
   }
 
@@ -25,7 +32,6 @@
       whitelistedDomains: []
     },
     (settings) => {
-      const currentHost = location.hostname.toLowerCase();
       const isWhitelisted = settings.whitelistedDomains.some(domain =>
         currentHost === domain.toLowerCase() || currentHost.endsWith('.' + domain.toLowerCase())
       );
@@ -39,13 +45,6 @@
       initAdBlocker();
     }
   );
-
-  /**
-   * Anti-adblock defusal is cleanly executed via MAIN world script (defusal_main.js).
-   */
-  function injectDefusalBait() {
-    // Handled natively by Manifest V3 MAIN world content script
-  }
 
 
   const AD_SELECTORS = [
@@ -187,8 +186,8 @@
    * Initialize observer and listeners
    */
   function initAdBlocker() {
-    injectDefusalBait();
     purgeAdElements(document);
+
 
     // Dynamic DOM observer
     const observer = new MutationObserver((mutations) => {
