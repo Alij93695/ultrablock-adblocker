@@ -1,0 +1,71 @@
+{
+  "manifest_version": 3,
+  "name": "UltraBlock - Aggressive YouTube & Web AdBlocker",
+  "version": "1.0.0",
+  "description": "Aggressively blocks YouTube video ads, automatically skips sponsored segments, and eliminates all ads and trackers across any website.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "UltraBlock Control Center"
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules/rules.json"
+      }
+    ]
+  },
+  "background": {
+    "service_worker": "background/service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "content/youtube_adblock.js",
+        "content/sponsor_skip.js"
+      ],
+      "css": [
+        "content/injected_styles.css"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "exclude_matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "content/generic_adblock.js"
+      ],
+      "css": [
+        "content/injected_styles.css"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

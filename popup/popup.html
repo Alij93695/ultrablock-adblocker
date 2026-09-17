@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UltraBlock</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-area">
+        <div class="shield-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="url(#shield-gradient)"/>
+            <path d="m9 12 2 2 4-4" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="shield-gradient" x1="4" y1="2" x2="20" y2="22">
+                <stop offset="0%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="title-wrap">
+          <h1>UltraBlock</h1>
+          <span class="badge-version">v1.0.0 PRO</span>
+        </div>
+      </div>
+      <div class="site-status" id="siteStatusBadge">Checking...</div>
+    </header>
+
+    <!-- Master Shield Status -->
+    <div class="master-card" id="masterCard">
+      <div class="master-info">
+        <span class="status-label" id="statusLabel">PROTECTION ACTIVE</span>
+        <span class="site-domain" id="currentDomain">example.com</span>
+      </div>
+      <label class="switch large-switch">
+        <input type="checkbox" id="masterToggle" checked>
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <!-- Live Counters Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="totalBlockedCount">0</div>
+        <div class="stat-label">Total Blocked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="youtubeBlockedCount">0</div>
+        <div class="stat-label">YouTube Ads</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="sponsorsSkippedCount">0</div>
+        <div class="stat-label">Sponsors Skipped</div>
+      </div>
+    </div>
+
+    <!-- Quick Whitelist Toggle Button -->
+    <button class="whitelist-btn" id="whitelistBtn">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      <span id="whitelistBtnText">Pause on this website</span>
+    </button>
+
+    <!-- Detailed Controls -->
+    <div class="features-section">
+      <div class="section-title">Protection Modules</div>
+
+      <div class="feature-row">
+        <div class="feature-info">
+          <span class="feature-title">YouTube Video Ad Guard</span>
+          <span class="feature-desc">0ms skip, mute & layout cleaner</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="youtubeToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-info">
+          <span class="feature-title">SponsorBlock Auto-Skip</span>
+          <span class="feature-desc">Detects & jumps sponsored segments</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="sponsorToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-info">
+          <span class="feature-title">Web-Wide Ad Filter</span>
+          <span class="feature-desc">Network & cosmetic element purger</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="webAdblockToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-info">
+          <span class="feature-title">Ultra Aggressive Mode</span>
+          <span class="feature-desc">Anti-adblock bypass & popup killer</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="aggressiveToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Sponsor Categories Selection -->
+    <div class="categories-section" id="categoriesSection">
+      <div class="section-title">SponsorBlock Categories</div>
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="catSponsor" value="sponsor" checked>
+          <span>Paid Sponsors</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="catSelfPromo" value="selfpromo" checked>
+          <span>Self Promotion</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="catInteraction" value="interaction" checked>
+          <span>Interaction Reminders</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <button class="reset-stats-btn" id="resetStatsBtn">Reset Stats</button>
+      <span>UltraBlock Engine</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

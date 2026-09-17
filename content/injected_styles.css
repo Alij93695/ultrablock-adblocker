@@ -1,0 +1,204 @@
+/* ==========================================================================
+   UltraBlock - Aggressive Cosmetic Filtering Engine
+   ========================================================================== */
+
+/* --- YouTube Specific Ad Layout Elimination --- */
+#masthead-ad,
+ytd-masthead #masthead-ad,
+ytd-ad-slot-renderer,
+ytd-rich-item-renderer:has(ytd-display-ad-renderer),
+ytd-rich-item-renderer:has(ytd-ad-slot-renderer),
+ytd-rich-section-renderer:has(ytd-statement-banner-renderer),
+ytd-display-ad-renderer,
+ytd-banner-promo-renderer,
+ytd-promoted-sparkles-web-renderer,
+ytd-promoted-sparkles-text-search-renderer,
+ytd-promoted-video-renderer,
+ytd-compact-promoted-video-renderer,
+ytd-in-feed-ad-layout-renderer,
+#player-ads,
+#panels:has(ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"]),
+ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"],
+.ytp-ad-overlay-container,
+.ytp-ad-message-container,
+.ytp-ad-action-interstitial-background-container,
+.ytp-ad-action-interstitial,
+.ytp-ad-image-overlay,
+.ytp-ad-text-overlay,
+.ytp-ad-preview-container,
+.ytp-ad-progress-list,
+ytd-action-companion-ad-renderer,
+ytd-merch-shelf-renderer,
+#related ytd-ad-slot-renderer,
+#items > ytd-ad-slot-renderer,
+ytd-reel-video-renderer:has(.ytd-ad-slot-renderer) {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  max-height: 0 !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/* YouTube Anti-Adblock Enforcement Modal Nullification */
+ytd-enforcement-message-view-model,
+tp-yt-paper-dialog:has(ytd-enforcement-message-view-model),
+.ytd-popup-container:has(ytd-enforcement-message-view-model) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* --- Web-Wide Generic Ad Units & Network Wrappers --- */
+ins.adsbygoogle,
+[id^="google_ads_"],
+[id^="div-gpt-ad"],
+[id^="dfp-ad-"],
+[class*="google-ad"],
+[class*="adsbygoogle"],
+[data-ad-unit],
+[data-ad-slot],
+[data-ad-zone],
+[data-ad-name],
+[data-ad-client],
+[data-adunit],
+[data-google-query-id],
+iframe[id^="google_ads_iframe"],
+iframe[name^="google_ads_iframe"],
+iframe[src*="doubleclick.net"],
+iframe[src*="googlesyndication.com"],
+iframe[src*="adnxs.com"],
+iframe[src*="criteo."],
+iframe[src*="amazon-adsystem.com"],
+iframe[src*="smartadserver.com"],
+iframe[src*="taboola.com"],
+iframe[src*="outbrain.com"] {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* --- Content Recommendation & Native Ad Outlets --- */
+.trc_related_container,
+.OUTBRAIN,
+.taboola-placeholder,
+div[id^="taboola-"],
+div[id^="outbrain_"],
+div[class*="taboola"],
+div[class*="outbrain"],
+div[id*="adthrive"],
+div[id*="mediavine"],
+div[class*="adthrive"],
+div[class*="mediavine"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+/* --- Generic Ad Containers & Sticky Overlays --- */
+div[class*="floating-ad"],
+div[class*="sticky-ad"],
+div[id*="sticky-ad"],
+div[class*="ad-container"]:not([class*="leaderboard-header"]):not([class*="thread"]),
+div[class*="ad-wrapper"],
+div[class*="ad_wrapper"],
+div[class*="ad-banner"],
+div[id*="ad_banner"],
+div[id*="ad-wrapper"],
+div[class*="sponsored-post"],
+div[class*="sponsored-content"],
+div[class*="promoted-item"],
+div[class*="advertisement"]:not(article):not(main) {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* --- Video Player Embedded Ad Units --- */
+.vjs-ima3-html5-ad-container,
+.ima-ad-container,
+.video-ad-overlay,
+.jw-ad-controls,
+.jw-ad-flags,
+.jw-flag-ads {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* --- SponsorBlock In-Player Toast Overlay --- */
+.ultrablock-sponsor-toast {
+  position: absolute;
+  bottom: 60px;
+  right: 20px;
+  z-index: 999999999;
+  background: rgba(18, 20, 29, 0.92);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 15px rgba(139, 92, 246, 0.2);
+  animation: ultrablock-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  user-select: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.ultrablock-sponsor-toast.fading {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.ultrablock-sponsor-badge {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ultrablock-sponsor-undo {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ultrablock-sponsor-undo:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  transform: scale(1.04);
+}
+
+@keyframes ultrablock-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
