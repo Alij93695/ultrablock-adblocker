@@ -54,16 +54,24 @@
    */
   async function fetchSponsorSegments(videoId) {
     if (!videoId) return [];
-    
-    const categoriesParam = JSON.stringify(enabledCategories);
-    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categoriesParam)}`;
 
     try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
+      const response = await new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          { action: 'fetchSponsorSegments', videoId, categories: enabledCategories },
+          (res) => {
+            if (chrome.runtime.lastError || !res) {
+              resolve(null);
+            } else {
+              resolve(res);
+            }
+          }
+        );
+      });
+
+      if (response && response.success && Array.isArray(response.segments)) {
         const segments = [];
-        data.forEach(item => {
+        response.segments.forEach(item => {
           if (item.segment && item.segment.length === 2) {
             segments.push({
               start: item.segment[0],
@@ -73,15 +81,16 @@
             });
           }
         });
-        return segments;
+        if (segments.length > 0) return segments;
       }
     } catch (e) {
-      console.warn('[UltraBlock] SponsorBlock API unavailable, falling back to chapter analysis');
+      // Ignored, fallback below
     }
 
     // Fallback: parse video chapters for sponsored segments
     return parseChaptersForSponsors();
   }
+
 
   /**
    * Fallback chapter analyzer: scans chapters/description for sponsor keywords

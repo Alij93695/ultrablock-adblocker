@@ -41,42 +41,12 @@
   );
 
   /**
-   * Inject anti-adblock defusal into page context (World: MAIN)
+   * Anti-adblock defusal is cleanly executed via MAIN world script (defusal_main.js).
    */
   function injectDefusalBait() {
-    try {
-      const script = document.createElement('script');
-      script.textContent = `
-        (function() {
-          try {
-            window.canRunAds = true;
-            window.isAdBlockActive = false;
-            window.adblock = false;
-            window.isAdBlockerActive = false;
-            window.google_ad_client = 'ca-pub-0000000000000000';
-            
-            // Dummy adsbygoogle array with mock push
-            if (!window.adsbygoogle) {
-              window.adsbygoogle = [];
-            }
-            window.adsbygoogle.loaded = true;
-            const origPush = window.adsbygoogle.push;
-            window.adsbygoogle.push = function() {
-              return 1;
-            };
-
-            // Neutralize common bait detection variables
-            Object.defineProperty(window, 'canRunAds', { value: true, writable: true, configurable: true });
-            Object.defineProperty(window, 'isAdBlockActive', { value: false, writable: true, configurable: true });
-          } catch(e) {}
-        })();
-      `;
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();
-    } catch (e) {
-      // Ignored if CSP restricts inline scripts
-    }
+    // Handled natively by Manifest V3 MAIN world content script
   }
+
 
   const AD_SELECTORS = [
     'ins.adsbygoogle',

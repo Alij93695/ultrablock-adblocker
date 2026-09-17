@@ -47,12 +47,14 @@ function updateBadge(count) {
 async function syncDeclarativeRules(masterEnabled, webAdblockEnabled) {
   const shouldEnableRules = masterEnabled && webAdblockEnabled;
   try {
-    if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.updateEnabledRulesets) {
-      if (shouldEnableRules) {
+    if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.getEnabledRulesets) {
+      const current = await chrome.declarativeNetRequest.getEnabledRulesets();
+      const isEnabled = current.includes('ruleset_1');
+      if (shouldEnableRules && !isEnabled) {
         await chrome.declarativeNetRequest.updateEnabledRulesets({
           enableRulesetIds: ['ruleset_1']
         });
-      } else {
+      } else if (!shouldEnableRules && isEnabled) {
         await chrome.declarativeNetRequest.updateEnabledRulesets({
           disableRulesetIds: ['ruleset_1']
         });
@@ -133,4 +135,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: true });
     return true;
   }
+
+  if (message.action === 'fetchSponsorSegments') {
+    const videoId = message.videoId;
+    const categories = message.categories || ['sponsor', 'selfpromo', 'interaction'];
+    const categoriesParam = JSON.stringify(categories);
+    const url = `https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(videoId)}&categories=${encodeURIComponent(categoriesParam)}`;
+
+    fetch(url)
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          sendResponse({ success: true, segments: data });
+        } else {
+          sendResponse({ success: false, segments: [] });
+        }
+      })
+      .catch(() => {
+        sendResponse({ success: false, segments: [] });
+      });
+    return true;
+  }
 });
+

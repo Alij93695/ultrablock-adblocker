@@ -66,6 +66,19 @@
         "content/injected_styles.css"
       ],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "exclude_matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "content/defusal_main.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
     }
   ]
 }
