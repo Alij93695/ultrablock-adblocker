@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "UltraBlock - Aggressive YouTube & Web AdBlocker",
+  "name": "UltraBlock - Universal Ad & Content Blocker",
   "version": "1.0.0",
-  "description": "Aggressively blocks YouTube video ads, automatically skips sponsored segments, and eliminates all ads and trackers across any website.",
+  "description": "Blocks intrusive ads, popups, banners, and sponsored content across websites and video streaming platforms.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -48,6 +48,18 @@
     "service_worker": "background/service_worker.js"
   },
   "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://youtube.com/*",
+        "*://*.youtube-nocookie.com/*"
+      ],
+      "js": [
+        "content/youtube_main_world.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
     {
       "matches": [
         "*://*.youtube.com/*",

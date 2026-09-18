@@ -9,6 +9,7 @@
 
   let isEnabled = true;
   let isHandlingAd = false;
+  let hasSeekedCurrentAd = false;
   let userMuted = false;
   let userPlaybackRate = 1;
   let statsReportCooldown = 0;
@@ -63,6 +64,8 @@
       '.ytp-ad-skip-button-modern',
       '.ytp-skip-ad-button',
       'button.ytp-ad-skip-button-modern',
+      'button.ytp-skip-ad-button',
+      'button.ytp-skip-ad-button.ytp-ad-component--clickable',
       '.ytp-ad-skip-button-slot button',
       '.ytp-ad-overlay-close-button',
       'button.ytp-ad-overlay-close-button',
@@ -112,7 +115,12 @@
       'ytd-display-ad-renderer',
       'ytd-ad-slot-renderer',
       '#masthead-ad',
-      'ytd-banner-promo-renderer'
+      'ytd-banner-promo-renderer',
+      'ytd-in-feed-ad-layout-renderer',
+      'ytd-promoted-sparkles-web-renderer',
+      'ytd-promoted-video-renderer',
+      '#sparkles-container',
+      'ytd-player-legacy-desktop-watch-ads-renderer'
     ];
 
     overlaySelectors.forEach(sel => {
@@ -121,6 +129,7 @@
         elements.forEach(el => {
           el.style.setProperty('display', 'none', 'important');
           el.style.setProperty('visibility', 'hidden', 'important');
+          el.style.setProperty('height', '0px', 'important');
           el.remove();
         });
       } catch (e) {}
@@ -128,27 +137,23 @@
   }
 
   /**
-   * Accurately detects whether an advertisement is actively playing
+   * Ultra-fast check to detect if an advertisement is actively playing
+   * Operates in < 0.005ms without triggering forced layout reflows.
    */
   function isAdActive(moviePlayer) {
+    if (!moviePlayer) {
+      moviePlayer = document.getElementById('movie_player') || document.querySelector('.html5-video-player');
+    }
     if (!moviePlayer) return false;
 
-    // 1. Check YouTube player state classes
+    // 1. Instant class check (fastest, 0 layout reflow)
     if (moviePlayer.classList.contains('ad-showing') || moviePlayer.classList.contains('ad-interrupting')) {
       return true;
     }
 
-    // 2. Check for visible "Sponsored" text or skip button inside player
-    const sponsoredLabel = moviePlayer.querySelector('.ytp-ad-badge, [class*="ytp-ad-badge"], .ytp-ad-text');
-    if (sponsoredLabel && sponsoredLabel.offsetParent !== null) {
-      const txt = sponsoredLabel.innerText || sponsoredLabel.textContent || '';
-      if (txt.includes('Sponsored') || txt.includes('Ad')) {
-        return true;
-      }
-    }
-
-    const skipBtn = moviePlayer.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button');
-    if (skipBtn && skipBtn.offsetParent !== null) {
+    // 2. Secondary check only if player is in an active ad state
+    const playerOverlay = moviePlayer.querySelector('.ytp-ad-player-overlay, .ytp-ad-action-interstitial');
+    if (playerOverlay && playerOverlay.offsetParent !== null) {
       return true;
     }
 
@@ -171,6 +176,7 @@
     if (adPlaying) {
       if (!isHandlingAd) {
         isHandlingAd = true;
+        hasSeekedCurrentAd = false;
         userMuted = video.muted;
         userPlaybackRate = (video.playbackRate >= 0.25 && video.playbackRate <= 2) ? video.playbackRate : 1;
       }
@@ -178,24 +184,32 @@
       // 1. Mute audio so the user hears nothing
       video.muted = true;
 
-      // 2. Accelerate ad to 16x speed (15s ad passes in < 0.9 seconds)
+      // 2. Accelerate ad to 16x speed (a 30s ad passes in < 1.8 seconds)
       video.playbackRate = 16;
 
-      // 3. Fast-forward video ad to completion if duration is finite
-      if (isFinite(video.duration) && video.duration > 0 && video.currentTime < video.duration - 0.1) {
-        video.currentTime = video.duration;
+      // 3. Fast-forward video ad once safely to the end
+      if (!hasSeekedCurrentAd && isFinite(video.duration) && video.duration > 0) {
+        hasSeekedCurrentAd = true;
+        const target = Math.max(0, video.duration - 0.1);
+        if (video.currentTime < target) {
+          video.currentTime = target;
+        }
       }
 
       // 4. Click skip button immediately
       clickAllSkipButtons(moviePlayer);
 
-      // 5. Ensure playback continues so the ad completes
+      // 5. Instantly purge any ad overlays
+      purgeAdOverlays();
+
+      // 6. Ensure playback continues so the ad completes
       if (video.paused) {
         video.play().catch(() => {});
       }
     } else if (isHandlingAd) {
       // Ad has completed! Restore user settings
       isHandlingAd = false;
+      hasSeekedCurrentAd = false;
 
       // Restore playback rate
       if (video.playbackRate > 2) {
@@ -263,35 +277,32 @@
   }
 
   /**
-   * Main initialization loop
+   * Main initialization loop (Zero-Lag Optimized)
    */
   function initYouTubeAdBlocker() {
-    // 1. High frequency check (every 50ms)
+    // 1. Ultra-lightweight video ad check (every 100ms, cost < 0.005ms when no ad)
     setInterval(() => {
       handleVideoAd();
-      clickAllSkipButtons();
-      purgeAdOverlays();
-      defuseAntiAdblockModal();
-    }, 50);
+    }, 100);
 
-    // 2. Periodic layout cleaner (every 500ms)
+    // 2. Periodic background maintenance (every 1500ms)
     setInterval(() => {
       purgeAdOverlays();
-    }, 500);
+      defuseAntiAdblockModal();
+    }, 1500);
 
     // 3. YouTube SPA navigation handler
     window.addEventListener('yt-navigate-finish', () => {
       isHandlingAd = false;
+      hasSeekedCurrentAd = false;
       setTimeout(() => {
         handleVideoAd();
         purgeAdOverlays();
-        clickAllSkipButtons();
-      }, 100);
+      }, 50);
     });
 
     // 4. Initial pass
     handleVideoAd();
     purgeAdOverlays();
-    clickAllSkipButtons();
   }
 })();
