@@ -1,8 +1,7 @@
 /**
- * UltraBlock - YouTube Ad Accelerator & Auto-Skipper
- * Accelerates video ads to 16x speed, mutes audio during ads,
- * clicks modern skip buttons instantly, and cleans up banner ad units.
- * 100% stable: no recursive loops, no DOM freezes, no audio corruption.
+ * UltraBlock - Ultimate YouTube Ad Destroyer & Skipper
+ * Combines network-level blocking, universal skip button clicking,
+ * 16x video ad acceleration, and instant display/interstitial ad eradication.
  */
 
 (function () {
@@ -33,19 +32,123 @@
   );
 
   /**
-   * Accurately determines if a video advertisement is currently showing
+   * Universal simulated click with trusted-like pointer & mouse event sequence
    */
-  function isAdActive(player) {
-    if (!player) return false;
+  function triggerClick(el) {
+    if (!el) return;
+    try {
+      const events = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'];
+      events.forEach(type => {
+        el.dispatchEvent(new MouseEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        }));
+      });
+      if (typeof el.click === 'function') {
+        el.click();
+      }
+    } catch (e) {}
+  }
 
-    // 1. YouTube player state classes (primary ground truth)
-    if (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting')) {
+  /**
+   * Finds and clicks ANY modern skip button (class-based, attribute-based, or text-based)
+   */
+  function clickAllSkipButtons(container) {
+    const root = container || document;
+
+    // 1. Selector-based skip buttons
+    const skipSelectors = [
+      '.ytp-ad-skip-button',
+      '.ytp-ad-skip-button-modern',
+      '.ytp-skip-ad-button',
+      'button.ytp-ad-skip-button-modern',
+      '.ytp-ad-skip-button-slot button',
+      '.ytp-ad-overlay-close-button',
+      'button.ytp-ad-overlay-close-button',
+      '.ytp-ad-skip-button-container button',
+      'button[class*="skip-button"]',
+      'button[class*="ytp-ad-skip"]',
+      'button[aria-label*="Skip" i]',
+      'button[aria-label*="skip ad" i]',
+      '.ytp-ad-text.ytp-ad-preview-text',
+      'div[class*="ytp-ad-skip"]'
+    ];
+
+    for (const sel of skipSelectors) {
+      try {
+        const btns = root.querySelectorAll(sel);
+        btns.forEach(b => triggerClick(b));
+      } catch (e) {}
+    }
+
+    // 2. Universal text-based button scanning (handles "Skip ⏭", "Skip Ad", etc.)
+    try {
+      const buttons = root.querySelectorAll('button, [role="button"], span.ytp-ad-text');
+      buttons.forEach(b => {
+        const text = (b.innerText || b.textContent || b.getAttribute('aria-label') || '').trim().toLowerCase();
+        if (text === 'skip' || text.startsWith('skip') || text.includes('skip ad') || text.includes('skip ad in')) {
+          triggerClick(b);
+        }
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * Instantly removes static interstitial ad overlays (like "Agents in Google AI Studio", "Learn more")
+   */
+  function purgeAdOverlays() {
+    const overlaySelectors = [
+      '.ytp-ad-player-overlay',
+      '.ytp-ad-action-interstitial',
+      '.ytp-ad-action-interstitial-background-container',
+      '.ytp-ad-image-overlay',
+      '.ytp-ad-text-overlay',
+      '.ytp-ad-preview-container',
+      '.ytp-ad-message-container',
+      '.ytp-ad-overlay-container',
+      '#player-ads',
+      'ytd-action-companion-ad-renderer',
+      'ytd-display-ad-renderer',
+      'ytd-ad-slot-renderer',
+      '#masthead-ad',
+      'ytd-banner-promo-renderer'
+    ];
+
+    overlaySelectors.forEach(sel => {
+      try {
+        const elements = document.querySelectorAll(sel);
+        elements.forEach(el => {
+          el.style.setProperty('display', 'none', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+          el.remove();
+        });
+      } catch (e) {}
+    });
+  }
+
+  /**
+   * Accurately detects whether an advertisement is actively playing
+   */
+  function isAdActive(moviePlayer) {
+    if (!moviePlayer) return false;
+
+    // 1. Check YouTube player state classes
+    if (moviePlayer.classList.contains('ad-showing') || moviePlayer.classList.contains('ad-interrupting')) {
       return true;
     }
 
-    // 2. Active skip button or ad text visible inside the player
-    const adButton = player.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button');
-    if (adButton && adButton.offsetParent !== null) {
+    // 2. Check for visible "Sponsored" text or skip button inside player
+    const sponsoredLabel = moviePlayer.querySelector('.ytp-ad-badge, [class*="ytp-ad-badge"], .ytp-ad-text');
+    if (sponsoredLabel && sponsoredLabel.offsetParent !== null) {
+      const txt = sponsoredLabel.innerText || sponsoredLabel.textContent || '';
+      if (txt.includes('Sponsored') || txt.includes('Ad')) {
+        return true;
+      }
+    }
+
+    const skipBtn = moviePlayer.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button');
+    if (skipBtn && skipBtn.offsetParent !== null) {
       return true;
     }
 
@@ -53,7 +156,7 @@
   }
 
   /**
-   * Fast-forwards ads at 16x speed and auto-skips with 0 audio leak
+   * Fast-forwards video ads, mutes audio, and triggers auto-skip
    */
   function handleVideoAd() {
     if (!isEnabled) return;
@@ -73,24 +176,25 @@
       }
 
       // 1. Mute audio so the user hears nothing
-      if (!video.muted) {
-        video.muted = true;
+      video.muted = true;
+
+      // 2. Accelerate ad to 16x speed (15s ad passes in < 0.9 seconds)
+      video.playbackRate = 16;
+
+      // 3. Fast-forward video ad to completion if duration is finite
+      if (isFinite(video.duration) && video.duration > 0 && video.currentTime < video.duration - 0.1) {
+        video.currentTime = video.duration;
       }
 
-      // 2. Set playback speed to 16x (fastest HTML5 rate: 15s ad plays in < 1 second!)
-      if (video.playbackRate !== 16) {
-        video.playbackRate = 16;
-      }
+      // 4. Click skip button immediately
+      clickAllSkipButtons(moviePlayer);
 
-      // 3. Click skip button immediately
-      clickSkipButtons(moviePlayer);
-
-      // 4. Ensure video is playing so the ad finishes quickly
+      // 5. Ensure playback continues so the ad completes
       if (video.paused) {
         video.play().catch(() => {});
       }
     } else if (isHandlingAd) {
-      // Ad has finished! Restore normal user settings immediately
+      // Ad has completed! Restore user settings
       isHandlingAd = false;
 
       // Restore playback rate
@@ -98,12 +202,12 @@
         video.playbackRate = userPlaybackRate;
       }
 
-      // Restore unmute if user wasn't originally muted
+      // Restore unmute if user was originally unmuted
       if (!userMuted && video.muted) {
         video.muted = false;
       }
 
-      // Resume actual content if paused
+      // Ensure main video plays smoothly
       if (video.paused) {
         video.play().catch(() => {});
       }
@@ -113,38 +217,7 @@
   }
 
   /**
-   * Click all variations of YouTube's skip buttons
-   */
-  function clickSkipButtons(container) {
-    const root = container || document;
-    const skipSelectors = [
-      '.ytp-ad-skip-button',
-      '.ytp-ad-skip-button-modern',
-      '.ytp-skip-ad-button',
-      'button.ytp-ad-skip-button-modern',
-      '.ytp-ad-skip-button-slot button',
-      '.ytp-ad-overlay-close-button',
-      'button.ytp-ad-overlay-close-button',
-      '.ytp-ad-skip-button-container button',
-      'button[class*="skip-button"]',
-      'button[class*="ytp-ad-skip"]',
-      'button[aria-label*="Skip"]'
-    ];
-
-    for (const sel of skipSelectors) {
-      try {
-        const btns = root.querySelectorAll(sel);
-        btns.forEach(b => {
-          if (b && typeof b.click === 'function') {
-            b.click();
-          }
-        });
-      } catch (e) {}
-    }
-  }
-
-  /**
-   * Defuses anti-adblock modals
+   * Neutralizes YouTube's Anti-Adblock modal
    */
   function defuseAntiAdblockModal() {
     if (!isEnabled) return;
@@ -169,32 +242,7 @@
   }
 
   /**
-   * Remove static banners & promo units
-   */
-  function purgeBannerAds() {
-    if (!isEnabled) return;
-
-    const bannerSelectors = [
-      '#masthead-ad',
-      'ytd-ad-slot-renderer',
-      'ytd-banner-promo-renderer',
-      'ytd-promoted-sparkles-web-renderer',
-      'ytd-promoted-sparkles-text-search-renderer',
-      'ytd-in-feed-ad-layout-renderer',
-      '#player-ads',
-      '.ytp-ad-overlay-container'
-    ];
-
-    bannerSelectors.forEach(sel => {
-      try {
-        const els = document.querySelectorAll(sel);
-        els.forEach(el => el.remove());
-      } catch (e) {}
-    });
-  }
-
-  /**
-   * Report blocked ad stats
+   * Report blocked ad stats to background worker
    */
   function reportStats() {
     const now = Date.now();
@@ -215,31 +263,35 @@
   }
 
   /**
-   * Initialize ad blocker with lightweight, non-blocking polling
+   * Main initialization loop
    */
   function initYouTubeAdBlocker() {
-    // 1. High frequency check (every 100ms) - lightweight, 0% CPU, safe
+    // 1. High frequency check (every 50ms)
     setInterval(() => {
       handleVideoAd();
+      clickAllSkipButtons();
+      purgeAdOverlays();
       defuseAntiAdblockModal();
-    }, 100);
+    }, 50);
 
-    // 2. Banner ad cleaner (every 1000ms)
+    // 2. Periodic layout cleaner (every 500ms)
     setInterval(() => {
-      purgeBannerAds();
-    }, 1000);
+      purgeAdOverlays();
+    }, 500);
 
     // 3. YouTube SPA navigation handler
     window.addEventListener('yt-navigate-finish', () => {
       isHandlingAd = false;
       setTimeout(() => {
         handleVideoAd();
-        purgeBannerAds();
-      }, 150);
+        purgeAdOverlays();
+        clickAllSkipButtons();
+      }, 100);
     });
 
-    // 4. Initial cleanup
+    // 4. Initial pass
     handleVideoAd();
-    purgeBannerAds();
+    purgeAdOverlays();
+    clickAllSkipButtons();
   }
 })();

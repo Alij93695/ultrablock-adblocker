@@ -1,3 +1,29 @@
+
+/* UltraBlock Comprehensive Ad Overlay Elimination */
+.ytp-ad-player-overlay,
+.ytp-ad-action-interstitial,
+.ytp-ad-action-interstitial-background-container,
+.ytp-ad-image-overlay,
+.ytp-ad-text-overlay,
+.ytp-ad-preview-container,
+.ytp-ad-progress-list,
+.ytp-ad-message-container,
+.ytp-ad-overlay-container,
+[class*="ytp-ad-action-interstitial"],
+[class*="ytp-ad-player-overlay"],
+ytd-action-companion-ad-renderer,
+ytd-display-ad-renderer,
+ytd-ad-slot-renderer,
+#player-ads {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-height: 0 !important;
+}
+
 /* ==========================================================================
    UltraBlock - Aggressive Cosmetic Filtering Engine
    ========================================================================== */

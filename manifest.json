@@ -31,6 +31,16 @@
         "id": "ruleset_1",
         "enabled": true,
         "path": "rules/rules.json"
+      },
+      {
+        "id": "ruleset_ublock",
+        "enabled": true,
+        "path": "rules/ublock-filters.json"
+      },
+      {
+        "id": "ruleset_easylist",
+        "enabled": true,
+        "path": "rules/easylist.json"
       }
     ]
   },
